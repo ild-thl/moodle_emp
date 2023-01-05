@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="local/emp/db" VERSION="20230103" COMMENT="XMLDB file for Moodle local/emp"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
+    <TABLE NAME="local_emp_course" COMMENT="Stores metadata used by the local_emp plugin. Every entry relates exactly to one course. There can be only one entry per course.">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="1:1 relation to course id"/>
+        <FIELD NAME="creditscheme" TYPE="char" LENGTH="32" NOTNULL="true" DEFAULT="ects" SEQUENCE="false" COMMENT="The type of scheme used to calculate the credits (example: ECTS)"/>
+        <FIELD NAME="creditvalue" TYPE="number" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false" DECIMALS="1" COMMENT="The number of credits achieved by the student upon passing the course"/>
+        <FIELD NAME="levelvalue" TYPE="char" LENGTH="128" NOTNULL="false" SEQUENCE="false" COMMENT="Level of education (example: EQF)."/>
+        <FIELD NAME="leveltype" TYPE="char" LENGTH="32" NOTNULL="false" SEQUENCE="false" COMMENT="The type of educational level"/>
+        <FIELD NAME="languageofinstruction" TYPE="char" LENGTH="2" NOTNULL="true" DEFAULT="de" SEQUENCE="false" COMMENT="An ISO 639-1 code of the language which has been used as the primary language for teaching the learner during the classes"/>
+        <FIELD NAME="engagementhours" TYPE="number" LENGTH="4" NOTNULL="false" SEQUENCE="false" DECIMALS="1" COMMENT="The number of hours the student had spent on attending the course."/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="foreign-courseid" TYPE="foreign-unique" FIELDS="courseid" REFTABLE="course" REFFIELDS="id"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="local_emp_issuer" COMMENT="Information about the organization that issues the ELMO certificates.">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="titleen" TYPE="char" LENGTH="128" NOTNULL="true" SEQUENCE="false" COMMENT="The english title"/>
+        <FIELD NAME="titlede" TYPE="char" LENGTH="128" NOTNULL="false" SEQUENCE="false" COMMENT="The german title"/>
+        <FIELD NAME="url" TYPE="char" LENGTH="256" NOTNULL="true" SEQUENCE="false" COMMENT="An url to the homepage of the issuer."/>
+        <FIELD NAME="schac" TYPE="char" LENGTH="256" NOTNULL="false" SEQUENCE="false" COMMENT="SCHAC identifier"/>
+        <FIELD NAME="erasmus" TYPE="char" LENGTH="16" NOTNULL="false" SEQUENCE="false" COMMENT="ERASMUS identifier."/>
+        <FIELD NAME="pic" TYPE="char" LENGTH="16" NOTNULL="false" SEQUENCE="false" COMMENT="PIC identifier"/>
+        <FIELD NAME="country" TYPE="char" LENGTH="2" NOTNULL="false" SEQUENCE="false" COMMENT="Country of issuer as ISO-3166-ALPHA-2 code."/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+    </TABLE>
+  </TABLES>
+</XMLDB>
