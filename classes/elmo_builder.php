@@ -46,8 +46,35 @@ class elmo_builder {
     const DS_NAMESPACE = 'http://www.w3.org/2000/09/xmldsig#';
 
     /** Schema Location. */
-    const SCHMEMALOCATION = 'https://raw.githubusercontent.com/emrex-eu/elmo-schemas/v1/schema.xsd';
+    const SCHMEMALOCATION = 'https://github.com/emrex-eu/elmo-schemas/tree/v1 https://raw.githubusercontent.com/emrex-eu/elmo-schemas/v1/schema.xsd';
 
+    /**
+     * The certificate recepient, a db record of a moodle user.
+     *
+     * @var stdClass
+     */
+    private $user;
+
+    /**
+     * The db record of the issuer of the elmo certificate.
+     *
+     * @var stdClass
+     */
+    private $issuer;
+
+    /**
+     * Array of achievements (stdClass).
+     *
+     * @var array
+     */
+    private $achievements;
+
+    /**
+     * ELMO xml data.
+     *
+     * @var DOMDocument
+     */
+    private $xml;
     /**
      * Constructor.
      *
@@ -56,12 +83,10 @@ class elmo_builder {
      * @param array $achievements
      * @param string $sessionid
      */
-    public function __construct(\stdClass $user, \stdClass $issuer, array $achievements, $sessionid) {
+    public function __construct(\stdClass $user, \stdClass $issuer, array $achievements) {
         $this->user = $user;
         $this->issuer = $issuer;
         $this->achievements = $achievements;
-        $this->sessionid = $sessionid;
-
         $this->xml = $this->build_elmo();
     }
 
@@ -74,7 +99,7 @@ class elmo_builder {
         $root->setAttributeNS(self::XSI_NAMESPACE, 'schemaLocation', self::SCHMEMALOCATION);
 
         // Build generatedDate.
-        $generateddate = userdate(time(), '%Y-%m-%dT%H:%M:%S%z');
+        $generateddate = userdate(time(), '%Y-%m-%0dT%T%z');
         $generateddate = substr_replace($generateddate, ':', strlen($generateddate) - 2, 0);
         $root->appendChild($xml->createElement('generatedDate', $generateddate));
 

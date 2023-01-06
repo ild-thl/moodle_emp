@@ -34,6 +34,13 @@ $sessionid = required_param('sessionId', PARAM_RAW_TRIMMED);
 $returnurl = optional_param('returnUrl', null, PARAM_URL);
 $context = context_system::instance();
 
+
+$url = new moodle_url('/local/emp/init.php', array('sessionId' => $sessionid, 'returnUrl' => $returnurl));
+
+$PAGE->set_pagelayout('report');
+$PAGE->set_context($context);
+$PAGE->set_url($url);
+
 // User has to be logged in.
 require_login();
 
@@ -42,11 +49,6 @@ if (!has_capability('local/emp:allowaccess', $context)) {
     redirect(new moodle_url('/'));
 }
 
-$url = new moodle_url('/local/emp/init.php', array('sessionId' => $sessionid, 'returnUrl' => $returnurl));
-
-$PAGE->set_pagelayout('report');
-$PAGE->set_context($context);
-$PAGE->set_url($url);
 $PAGE->set_title(get_string('exportformtitle', 'local_emp'));
 $PAGE->set_heading(get_string('exportformtitle', 'local_emp'));
 $PAGE->requires->js(new moodle_url('/local/emp/js/export_form.js'));
@@ -69,38 +71,31 @@ $mform = new export_form($url, $customdata);
 
 if (!$mform->table->rawdata) {
     $manager->ncp_no_results();
-    redirect('/');
 }
 
 if ($mform->is_cancelled()) {
     $manager->ncp_cancel();
-    if (!empty($returnurl)) {
-        redirect($returnurl);
-    } else {
-        redirect('/');
-    }
 } else if ($fromform = $mform->get_data()) {
     // If achievements were selected, send them to the EMREX client.
     if (empty($fromform->achievements)) {
         $manager->ncp_no_results();
     } else {
-        $elmo = new elmo_builder($USER, $issuer, $fromform->achievements, $sessionid);
+        $elmo = new elmo_builder($USER, $issuer, $fromform->achievements);
         $signedelmo = $elmo->sign();
 
-        $manager->ncp_ok($signedelmo);
-        redirect('/');
+        $reponse = $manager->ncp_ok($signedelmo);
     }
+} else {
+    // Render page and export form.
+
+    echo $OUTPUT->header();
+
+    $toform = array(
+        'sessionId' => $sessionid,
+        'returnUrl' => $returnurl,
+    );
+    $mform->set_data($toform);
+    $mform->display();
+
+    echo $OUTPUT->footer();
 }
-
-// Render page and export form.
-
-echo $OUTPUT->header();
-
-$toform = array(
-    'sessionId' => $sessionid,
-    'returnUrl' => $returnurl,
-);
-$mform->set_data($toform);
-$mform->display();
-
-echo $OUTPUT->footer();

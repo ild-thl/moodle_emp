@@ -1,10 +1,10 @@
-
 let check_all = null;
 let checkboxs = null;
 
 self.window.addEventListener('load', init);
 
 function init() {
+
   check_all = document.querySelector('#m-element-select-all');
   checkboxs = document.querySelectorAll('.m-element-select-achievement');
 

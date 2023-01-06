@@ -25,6 +25,20 @@ namespace local_emp;
  */
 class manager {
     /**
+     * ID that is used by the EMREX Client to identify the session.
+     *
+     * @var string
+     */
+    private $sessionid;
+
+    /**
+     * The address for the elmo response and where the user is supposed to be returned to.
+     *
+     * @var string
+     */
+    private $returnurl;
+
+    /**
      * Constructor.
      *
      * @param string $sessionid
@@ -45,14 +59,6 @@ class manager {
         return str_replace(array('&', '<', '>', '\'', '"'), array('&amp;', '&lt;', '&gt;', '&apos;', '&quot;'), $string);
     }
 
-    public static function get_cert() : string {
-        return "";
-    }
-
-    public static function get_key() : string {
-        return "";
-    }
-
     /**
      * Sends a response to the requesting EMREX Client.
      *
@@ -66,44 +72,41 @@ class manager {
         string $returnmessage = "",
         string $elmo = null) {
 
+        global $OUTPUT, $PAGE;
+
         // If no returnUrl is given send the elmo xml as a file instead for download by the client browser.
-        if (isset($elmo) && !empty($elmo)) {
-            if (!isset($this->returnurl) || empty($this->returnurl)) {
-                send_file($elmo, 'transcript' . time() . '.xml', 0, 0, true, true);
-                return;
+        if (!isset($this->returnurl) || empty($this->returnurl)) {
+            if (isset($elmo) && !empty($elmo)) {
+                send_file($elmo, 'transcript' . time() . '.xml', 0, 0, true, false);
             }
 
+            return;
+        }
+
+        if (isset($elmo) && !empty($elmo)) {
             // Compress elmo certificate with gzip.
             $elmo = gzencode($elmo);
             // Convert compressed elmo to base64.
             $elmo = base64_encode($elmo);
         }
 
-        // Payload.
-        $dataarray = array(
-            'sessionId' => $this->sessionid,
-            'returnCode' => $returncode,
-            'returnMessage' => $returnmessage,
-            'elmo' => $elmo
+        $templatedata = array(
+            'returnurl' => $this->returnurl,
+            'sessionid' => $this->sessionid,
+            'returncode' => $returncode,
+            'returnmessage' => $returnmessage,
+            'elmo' => $elmo,
         );
 
-        $data = http_build_query($dataarray);
+        // Show hidden form that redirects automatically back to the EMREX Client
+        // and posts reponse data.
+        $PAGE->requires->js(new \moodle_url('/local/emp/js/respond.js'));
 
-        $curl = curl_init();
-        curl_setopt($curl, CURLOPT_URL, $this->returnurl);
-        curl_setopt($curl, CURLOPT_POST, 1);
-        curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
-        curl_setopt($curl, CURLOPT_HTTPHEADER, array('Content-Type: application/x-www-form-urlencoded'));
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        echo $OUTPUT->header();
 
-        $response = curl_exec($curl);
+        echo $OUTPUT->render_from_template('local_emp/respond', $templatedata);
 
-        if (curl_error($curl)) {
-            throw new \moodle_exception('Request Error:' . curl_error($curl));
-            return;
-        }
-
-        curl_close($curl);
+        echo $OUTPUT->footer();
     }
 
     /**
@@ -115,7 +118,7 @@ class manager {
     public function ncp_ok(string $elmo) {
         self::send_response('NCP_OK', '', $elmo);
 
-        \core\notification::success(get_string('ncpok', 'local_emp'));
+        \core\notification::info(get_string('ncpok', 'local_emp'));
     }
 
     /**
@@ -150,8 +153,6 @@ class manager {
     public function ncp_error(string $error) {
         self::send_response('NCP_ERROR', $error);
 
-        // \core\notification::error(get_string('ncperror', 'local_emp', $error));
-        redirect(qualified_me(), get_string('ncperror', 'local_emp'), null, \core\output\notification::NOTIFY_ERROR);
+        \core\notification::error(get_string('ncperror', 'local_emp', $error));
     }
-
 }

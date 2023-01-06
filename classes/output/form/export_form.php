@@ -31,6 +31,13 @@ require_once("$CFG->libdir/formslib.php");
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class export_form extends \moodleform {
+    /**
+     * Table that shows a users achievements.
+     *
+     * @var achievements_table
+     */
+    public $table;
+
     public function definition() {
         global $CFG;
         $mform = $this->_form;
