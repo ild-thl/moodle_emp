@@ -50,7 +50,7 @@ if ($hassiteconfig) {
             '',
             $CFG->dirroot . '/local/emp/my-cert.crt'
         ));
-        $settingspage->add(new admin_setting_configtext(
+        $settingspage->add(new admin_setting_configpasswordunmask(
             'localemp/pempassphrase',
             get_string('pempassphrase', 'local_emp'),
             '',
