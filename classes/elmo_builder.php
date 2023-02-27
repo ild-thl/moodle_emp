@@ -18,12 +18,10 @@ namespace local_emp;
 
 defined('MOODLE_INTERNAL') || die;
 
-require($CFG->dirroot . '/local/emp/vendor/autoload.php');
+require($CFG->dirroot . '/vendor/autoload.php');
 
 use RobRichards\XMLSecLibs\XMLSecurityDSig;
 use RobRichards\XMLSecLibs\XMLSecurityKey;
-
-use SimpleXMLElement;
 
 /**
  * Creates a transcript of records that attests a users achieved credits as ELMO xml.

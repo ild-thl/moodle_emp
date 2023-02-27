@@ -18,9 +18,6 @@ namespace local_emp\output\form;
 
 defined('MOODLE_INTERNAL') || die();
 
-use local_emp\output\table\achievements_table;
-use local_emp\manager;
-
 require_once("$CFG->libdir/formslib.php");
 
 /**
@@ -76,17 +73,27 @@ class export_form extends \moodleform {
             return $sorted;
         }
 
+        $sortedcourses = array();
+
         foreach ($records as $record) {
             if (!empty($record->haspart)) {
                 $record->parts = array();
                 foreach (explode(', ', $record->haspart) as $partid) {
                     foreach ($records as $r) {
                         if ($r->id == $partid) {
+                            $sortedcourses[] = $r->id;
                             $record->parts[] = $r;
                         }
                     }
                 }
 
+                $sortedcourses[] = $record->id;
+                $sorted[$record->id] = $record;
+            }
+        }
+
+        foreach ($records as $record) {
+            if (!in_array($record->id, $sortedcourses)) {
                 $sorted[$record->id] = $record;
             }
         }
@@ -148,30 +155,32 @@ class export_form extends \moodleform {
                         </td>
                     </tr>
             <?php
-            foreach ($achievement->parts as $index => $part) {
-                ?>
-                        <tr class="local-emp-part">
-                            <td class="cell c0 col-select">
-                                <?php echo($this->render_courseid($part)) ?>
-                            </td>
-                            <td class="cell c1 col-coursename">
-                                <span><?php echo ($index >= count($achievement->parts) - 1) ? '└' : '├' ?></span>
-                                <?php echo($this->render_coursename($part)) ?>
-                            </td>
-                            <td class="cell c2 col-languageofinstruction">
-                                <?php echo($this->render_languageofinstruction($part)) ?>
-                            </td>
-                            <td class="cell c3 col-levelvalue">
-                                <?php echo($this->render_levelvalue($part)) ?>
-                            </td>
-                            <td class="cell c4 col-engagementhours">
-                                <?php echo($this->render_engagementhours($part)) ?>
-                            </td>
-                            <td class="cell c5 col-creditvalue">
-                                <?php echo($this->render_creditvalue($part)) ?>
-                            </td>
-                        </tr>
-                <?php
+            if (!empty($achievement->parts)) {
+                foreach ($achievement->parts as $index => $part) {
+                    ?>
+                    <tr class="local-emp-part">
+                        <td class="cell c0 col-select">
+                            <?php echo($this->render_courseid($part)) ?>
+                        </td>
+                        <td class="cell c1 col-coursename">
+                            <span><?php echo ($index >= count($achievement->parts) - 1) ? '└' : '├' ?></span>
+                            <?php echo($this->render_coursename($part)) ?>
+                        </td>
+                        <td class="cell c2 col-languageofinstruction">
+                            <?php echo($this->render_languageofinstruction($part)) ?>
+                        </td>
+                        <td class="cell c3 col-levelvalue">
+                            <?php echo($this->render_levelvalue($part)) ?>
+                        </td>
+                        <td class="cell c4 col-engagementhours">
+                            <?php echo($this->render_engagementhours($part)) ?>
+                        </td>
+                        <td class="cell c5 col-creditvalue">
+                            <?php echo($this->render_creditvalue($part)) ?>
+                        </td>
+                    </tr>
+                    <?php
+                }
             }
         }
         ?>
@@ -292,17 +301,21 @@ class export_form extends \moodleform {
 
         foreach ($this->achievements as $achievement) {
             if (in_array($achievement->courseid, $toexport)) {
-                foreach ($achievement->parts as $index => $part) {
-                    if (!in_array($part->courseid, $toexport)) {
-                        unset($achievement->parts[$index]);
+                if (!empty($achievement->parts)) {
+                    foreach ($achievement->parts as $index => $part) {
+                        if (!in_array($part->courseid, $toexport)) {
+                            unset($achievement->parts[$index]);
+                        }
                     }
                 }
 
                 $data->achievements[] = $achievement;
             } else {
-                foreach ($achievement->parts as $index => $part) {
-                    if (in_array($part->courseid, $toexport)) {
-                        $data->achievements[] = $part;
+                if (!empty($achievement->parts)) {
+                    foreach ($achievement->parts as $index => $part) {
+                        if (in_array($part->courseid, $toexport)) {
+                            $data->achievements[] = $part;
+                        }
                     }
                 }
             }
