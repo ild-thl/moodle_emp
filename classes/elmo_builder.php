@@ -92,14 +92,15 @@ class elmo_builder {
 
     private function build_elmo() {
         $xml = new \DOMDocument('1.0', 'UTF-8');
-        $root = $xml->createElement('elmo' );
+        $root = $xml->createElement('elmo');
         $xml->appendChild($root);
         $xml->createAttributeNS(self::XMLNS_NAMESPACE, 'xmlns');
         $xml->createAttributeNS(self::XSI_NAMESPACE, 'xsi:schemaLocation');
         $root->setAttributeNS(self::XSI_NAMESPACE, 'schemaLocation', self::SCHMEMALOCATION);
 
-        // Build generatedDate.
-        $generateddate = userdate(time(), '%Y-%m-%0dT%T%z');
+        // Build generatedDate. Example: 2015-10-31T12:00:00+02:00.
+        // Backup: Fromat '%Y-%m-%0dT%T%z'.
+        $generateddate = userdate(time(), '%Y-%m-%dT%T%z');
         $generateddate = substr_replace($generateddate, ':', strlen($generateddate) - 2, 0);
         $root->appendChild($xml->createElement('generatedDate', $generateddate));
 
@@ -149,34 +150,12 @@ class elmo_builder {
 
         // Build learningOpportunitySpecification.
         foreach ($this->achievements as $achievement) {
-            $opportunity = $report->appendChild($xml->createElement('learningOpportunitySpecification'));
-            $localid = $opportunity->appendChild($xml->createElement('identifier', $achievement->courseid));
-            $localid->setAttribute('type', 'local');
-            $opportunity->appendChild($xml->createElement('title', $achievement->coursename));
-            $opportunity->appendChild($xml->createElement('type', 'Course'));
-            // TODO: subjectArea and iscedCode.
-            // TODO: url to detailpage if isymeta plugin is installed.
-            $opportunity->appendChild($xml->createElement('description', manager::xml_escape($achievement->summary)));
-
-            $specifies = $opportunity->appendChild($xml->createElement('specifies'));
-            $opportunityinstance = $specifies->appendChild($xml->createElement('learningOpportunityInstance'));
-            // TODO: start.
-            // TODO: date.
-            $opportunityinstance->appendChild($xml->createElement('status', 'passed'));
-            // TODO: grading.
-            $credit = $opportunityinstance->appendChild($xml->createElement('credit'));
-            $credit->appendChild($xml->createElement('scheme', $achievement->creditscheme));
-            $credit->appendChild($xml->createElement('value', $achievement->creditvalue));
-
-            if (isset($achievement->levelvalue)) {
-                $level = $opportunityinstance->appendChild($xml->createElement('level'));
-                $level->appendChild($xml->createElement('type', $achievement->leveltype));
-                // TODO: level description.
-                $level->appendChild($xml->createElement('value', $achievement->levelvalue));
+            $opportunity = $this->append_los($xml, $report, $achievement);
+            if (!empty($achievement->parts)) {
+                $haspartnode = $opportunity->appendChild($xml->createElement('hasPart'));
             }
-            $opportunityinstance->appendChild($xml->createElement('languageOfInstruction', $achievement->languageofinstruction));
-            if (isset($achievement->engagementhours)) {
-                $opportunityinstance->appendChild($xml->createElement('engagementHours', $achievement->engagementhours));
+            foreach ($achievement->parts as $part) {
+                $this->append_los($xml, $haspartnode, $part);
             }
         }
 
@@ -186,7 +165,41 @@ class elmo_builder {
         return $xml;
     }
 
-    public function sign() : string {
+    protected function append_los($xml, $parent, $achievement) {
+        $opportunity = $parent->appendChild($xml->createElement('learningOpportunitySpecification'));
+        $localid = $opportunity->appendChild($xml->createElement('identifier', $achievement->courseid));
+        $localid->setAttribute('type', 'local');
+        $opportunity->appendChild($xml->createElement('title', $achievement->coursename));
+        $opportunity->appendChild($xml->createElement('type', 'Course'));
+        // TODO: subjectArea and iscedCode.
+        // TODO: url to detailpage if isymeta plugin is installed.
+        $opportunity->appendChild($xml->createElement('description', manager::xml_escape($achievement->summary)));
+
+        $specifies = $opportunity->appendChild($xml->createElement('specifies'));
+        $opportunityinstance = $specifies->appendChild($xml->createElement('learningOpportunityInstance'));
+        // TODO: start.
+        // TODO: date.
+        $opportunityinstance->appendChild($xml->createElement('status', 'passed'));
+        // TODO: grading.
+        $credit = $opportunityinstance->appendChild($xml->createElement('credit'));
+        $credit->appendChild($xml->createElement('scheme', $achievement->creditscheme));
+        $credit->appendChild($xml->createElement('value', $achievement->creditvalue));
+
+        if (isset($achievement->levelvalue)) {
+            $level = $opportunityinstance->appendChild($xml->createElement('level'));
+            $level->appendChild($xml->createElement('type', $achievement->leveltype));
+            // TODO: level description.
+            $level->appendChild($xml->createElement('value', $achievement->levelvalue));
+        }
+        $opportunityinstance->appendChild($xml->createElement('languageOfInstruction', $achievement->languageofinstruction));
+        if (isset($achievement->engagementhours)) {
+            $opportunityinstance->appendChild($xml->createElement('engagementHours', $achievement->engagementhours));
+        }
+
+        return $opportunity;
+    }
+
+    public function sign(): string {
         // Create a new Security object.
         $signer = new XMLSecurityDSig();
         // Use the c14n exclusive canonicalization.
@@ -214,6 +227,16 @@ class elmo_builder {
         $signer->appendSignature($this->xml->documentElement);
 
         // Return the signed xml as a string.
+        return $this->xml->saveXML();
+    }
+
+    /**
+     * Return the ELMO XML as a string.
+     *
+     * @return string ELMO XML
+     */
+    public function get_unsigned(): string {
+        // Return the xml as a string.
         return $this->xml->saveXML();
     }
 }

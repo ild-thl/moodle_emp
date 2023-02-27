@@ -45,29 +45,59 @@ $PAGE->set_url(qualified_me());
 $PAGE->set_title(get_string('editempcourse', 'local_emp'));
 $PAGE->set_heading(get_string('editempcourse', 'local_emp'));
 
-$table = 'local_emp_course';
+$emptable = 'local_emp_course';
+$emppartstable = 'local_emp_course_haspart';
 
-$toform = $DB->get_record($table, ['courseid' => $id]);
+$toform = $DB->get_record($emptable, ['courseid' => $id]);
+if (!empty($toform)) {
+    $parts = $DB->get_records($emppartstable, ['parent' => $toform->id]);
+    if (!empty($parts)) {
+        $partids = array();
+        foreach ($parts as $part) {
+            $partids[] = $part->haspart;
+        }
 
-$mform = new edit_metadata_form(qualified_me());
+        $toform->hasparts = true;
+        $toform->parts = $partids;
+    }
+}
+
+$sql = 'SELECT emp.id as id, course.fullname as coursename from {local_emp_course} emp, {course} course WHERE emp.id != :empid AND emp.courseid = course.id';
+$params = array('empid' => $id);
+$records = $DB->get_records_sql($sql, $params);
+$possiblecourseparts = array();
+foreach ($records as $record) {
+    $possiblecourseparts[$record->id] = $record->coursename;
+}
+$customdata = array(
+    'possiblecourseparts' => $possiblecourseparts,
+);
+
+$mform = new edit_metadata_form(qualified_me(), $possiblecourseparts);
 
 if ($mform->is_cancelled()) {
     redirect($redirectto);
 } else if ($fromform = $mform->get_data()) {
     // If course is not in db yet, else update.
     if (!isset($toform) || empty($toform)) {
-        $DB->insert_record($table, $fromform);
+        $DB->insert_record($emptable, $fromform);
     } else {
-        $DB->update_record($table, $fromform);
+        $DB->update_record($emptable, $fromform);
+    }
+
+    // Update emp_haspart relationships.
+    $DB->delete_records($emppartstable, array('parent' => $fromform->id));
+    foreach ($fromform->parts as $part) {
+        $DB->insert_record($emppartstable, array('parent' => $fromform->id, 'haspart' => $part));
     }
 
     redirect($redirectto, get_string('editempcoursesuccess', 'local_emp'), null, \core\output\notification::NOTIFY_SUCCESS);
 }
-
 // Set default values.
 if (!isset($toform) || empty($toform)) {
     $toform = new stdClass();
     $toform->courseid = $id;
+    $toform->$possiblecourseparts = $possiblecourseparts;
 }
 
 

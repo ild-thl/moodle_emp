@@ -80,6 +80,18 @@ class edit_metadata_form extends \moodleform {
         // Engagement hours.
         $mform->addElement('float', 'engagementhours', get_string('engagementhours', 'local_emp'));
 
+        // Is course programme?
+        // HasPart.
+        $mform->addElement('checkbox', 'hasparts', get_string('hascourseparts', 'local_emp'));
+        $possiblecourseparts = $this->_customdata;
+        if (!empty($possiblecourseparts)) {
+            $select = $mform->addElement('select', 'parts', get_string('courseparts', 'local_emp'), $possiblecourseparts);
+            $select->setMultiple(true);
+            $mform->disabledIf('parts', 'hasparts');
+        } else {
+            $mform->addElement('static', 'nopossiblecourseparts', '', get_string('nopossiblecourseparts', 'local_emp'));
+        }
+
         $this->add_action_buttons();
     }
 }

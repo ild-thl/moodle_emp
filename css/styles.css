@@ -1,0 +1,16 @@
+.col-coursename {
+    display: flex;
+    gap: 1em;
+}
+
+.table-striped tbody tr.local-emp-parent {
+    background-color: inherit;
+}
+
+.table-striped tbody tr.local-emp-part {
+    background-color: rgba(0,0,0,.03);
+}
+
+.local-emp-part td > span {
+    color: #0f6cbf;
+}

@@ -52,6 +52,7 @@ if (!has_capability('local/emp:allowaccess', $context)) {
 $PAGE->set_title(get_string('exportformtitle', 'local_emp'));
 $PAGE->set_heading(get_string('exportformtitle', 'local_emp'));
 $PAGE->requires->js(new moodle_url('/local/emp/js/export_form.js'));
+$PAGE->requires->css(new moodle_url('/local/emp/css/styles.css'));
 
 $manager = new manager($sessionid, $returnurl);
 
@@ -69,7 +70,7 @@ $customdata = array(
 
 $mform = new export_form($url, $customdata);
 
-if (!$mform->table->rawdata) {
+if (empty($mform->achievements)) {
     $manager->ncp_no_results();
 }
 
@@ -82,12 +83,12 @@ if ($mform->is_cancelled()) {
     } else {
         $elmo = new elmo_builder($USER, $issuer, $fromform->achievements);
         $signedelmo = $elmo->sign();
+        // $signedelmo = $elmo->get_unsigned();
 
         $reponse = $manager->ncp_ok($signedelmo);
     }
 } else {
     // Render page and export form.
-
     echo $OUTPUT->header();
 
     $toform = array(
