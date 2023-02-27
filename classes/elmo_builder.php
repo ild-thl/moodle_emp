@@ -153,9 +153,9 @@ class elmo_builder {
             $opportunity = $this->append_los($xml, $report, $achievement);
             if (!empty($achievement->parts)) {
                 $haspartnode = $opportunity->appendChild($xml->createElement('hasPart'));
-            }
-            foreach ($achievement->parts as $part) {
-                $this->append_los($xml, $haspartnode, $part);
+                foreach ($achievement->parts as $part) {
+                    $this->append_los($xml, $haspartnode, $part);
+                }
             }
         }
 
@@ -173,7 +173,7 @@ class elmo_builder {
         $opportunity->appendChild($xml->createElement('type', 'Course'));
         // TODO: subjectArea and iscedCode.
         // TODO: url to detailpage if isymeta plugin is installed.
-        $opportunity->appendChild($xml->createElement('description', manager::xml_escape($achievement->summary)));
+        $opportunity->appendChild($xml->createElement('description', manager::xml_escape(strip_tags($achievement->summary))));
 
         $specifies = $opportunity->appendChild($xml->createElement('specifies'));
         $opportunityinstance = $specifies->appendChild($xml->createElement('learningOpportunityInstance'));

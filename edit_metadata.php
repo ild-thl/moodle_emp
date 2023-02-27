@@ -80,7 +80,7 @@ if ($mform->is_cancelled()) {
 } else if ($fromform = $mform->get_data()) {
     // If course is not in db yet, else update.
     if (!isset($toform) || empty($toform)) {
-        $DB->insert_record($emptable, $fromform);
+        $fromform->id = $DB->insert_record($emptable, $fromform);
     } else {
         $DB->update_record($emptable, $fromform);
     }

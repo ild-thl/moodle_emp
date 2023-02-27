@@ -291,17 +291,21 @@ class export_form extends \moodleform {
         }
 
         foreach ($this->achievements as $achievement) {
-            if (!in_array($achievement->courseid, $toexport)) {
-                continue;
-            }
+            if (in_array($achievement->courseid, $toexport)) {
+                foreach ($achievement->parts as $index => $part) {
+                    if (!in_array($part->courseid, $toexport)) {
+                        unset($achievement->parts[$index]);
+                    }
+                }
 
-            foreach ($achievement->parts as $index => $part) {
-                if (!in_array($part->courseid, $toexport)) {
-                    unset($achievement->parts[$index]);
+                $data->achievements[] = $achievement;
+            } else {
+                foreach ($achievement->parts as $index => $part) {
+                    if (in_array($part->courseid, $toexport)) {
+                        $data->achievements[] = $part;
+                    }
                 }
             }
-
-            $data->achievements[] = $achievement;
         }
 
         return $data;
