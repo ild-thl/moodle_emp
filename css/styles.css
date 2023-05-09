@@ -1,8 +1,3 @@
-.col-coursename {
-    display: flex;
-    gap: 1em;
-}
-
 .table-striped tbody tr.local-emp-parent {
     background-color: inherit;
 }

@@ -46,11 +46,17 @@ class export_form extends \moodleform {
         $mform->setType('sessionId', PARAM_RAW_TRIMMED);
         $mform->addElement('hidden', 'returnUrl');
         $mform->setType('returnUrl', PARAM_URL);
-        
+
         $this->achievements = $this->get_achievements($this->_customdata['user']->id);
         $achievementstable = $this->render_achievements($this->achievements);
 
         $mform->addElement('html', $achievementstable);
+        $mform->addElement('static', 'achievementserror');
+
+        $mform->addElement('date_selector', 'bday', get_string('bday', 'local_emp'));
+        // Make bday required.
+        $mform->addRule('bday', get_string('required'), 'required');
+        $mform->addHelpButton('bday', 'bday', 'local_emp');
 
         $this->add_action_buttons(true, get_string('exportformsubmit', 'local_emp'));
     }
@@ -61,12 +67,12 @@ class export_form extends \moodleform {
 
         $sql = 'SELECT emp.*, c.fullname as coursename, c.summary, GROUP_CONCAT(hp.haspart SEPARATOR ", ") as haspart
                 FROM {course_completions} cc
-                    JOIN {local_emp_course} emp ON cc.course = emp.courseid 
-                    JOIN {course} c ON cc.course = c.id 
+                    JOIN {local_emp_course} emp ON cc.course = emp.courseid
+                    JOIN {course} c ON cc.course = c.id
                     LEFT JOIN {local_emp_course_haspart} hp ON hp.parent = emp.id
                 WHERE cc.userid = :userid
                 GROUP BY emp.id;';
-        
+
         $params = array('userid' => $userid);
         $records = $DB->get_records_sql($sql, $params);
         if (empty($records)) {
@@ -102,7 +108,6 @@ class export_form extends \moodleform {
     }
 
     protected function render_achievements(array $achievements):string {
-        global $OUTPUT;
         ob_start();
         ?>
         <div class="no-overflow">
@@ -111,22 +116,21 @@ class export_form extends \moodleform {
                     <tr>
                         <th class="header c0 col-select" scope="col">
                             <input id="m-element-select-all" type="checkbox" name="check-all">
-                            <div class="commands"></div>
                         </th>
-                        <th class="header c1 col-coursename" scope="col"><a data-sortable="1" data-sortby="coursename" data-sortorder="4" role="button" href="http://moodle.local/local/emp/init.php?sessionId=test_session_id&amp;returnUrl&amp;tsort=coursename&amp;tdir=4">Course<span class="accesshide ">Sort by Course Descending</span></a> <i class="icon fa fa-sort-desc fa-fw " title="Descending" role="img" aria-label="Descending"></i>
-                            <div class="commands"></div>
+                        <th class="header c1 col-coursename" scope="col">
+                            <?php echo(get_string('course')) ?>
                         </th>
-                        <th class="header c2" scope="col"><a data-sortable="1" data-sortby="languageofinstruction" data-sortorder="3" role="button" href="http://moodle.local/local/emp/init.php?sessionId=test_session_id&amp;returnUrl&amp;tsort=languageofinstruction&amp;tdir=3">Language of instruction<span class="accesshide ">Sort by Language of instruction Ascending</span></a>
-                            <div class="commands"></div>
+                        <th class="header c2" scope="col">
+                            <?php echo(get_string('languageofinstruction', 'local_emp')) ?>
                         </th>
-                        <th class="header c3" scope="col"><a data-sortable="1" data-sortby="levelvalue" data-sortorder="3" role="button" href="http://moodle.local/local/emp/init.php?sessionId=test_session_id&amp;returnUrl&amp;tsort=levelvalue&amp;tdir=3">Educational level<span class="accesshide ">Sort by Educational level Ascending</span></a>
-                            <div class="commands"></div>
+                        <th class="header c3" scope="col">
+                            <?php echo(get_string('levelvalue', 'local_emp')) ?>
                         </th>
-                        <th class="header c4" scope="col"><a data-sortable="1" data-sortby="engagementhours" data-sortorder="3" role="button" href="http://moodle.local/local/emp/init.php?sessionId=test_session_id&amp;returnUrl&amp;tsort=engagementhours&amp;tdir=3">Engagement hours<span class="accesshide ">Sort by Engagement hours Ascending</span></a>
-                            <div class="commands"></div>
+                        <th class="header c4" scope="col">
+                            <?php echo(get_string('engagementhours', 'local_emp')) ?>
                         </th>
-                        <th class="header c5 col-creditvalue" scope="col"><a data-sortable="1" data-sortby="creditvalue" data-sortorder="3" role="button" href="http://moodle.local/local/emp/init.php?sessionId=test_session_id&amp;returnUrl&amp;tsort=creditvalue&amp;tdir=3">Credits<span class="accesshide ">Sort by Credits Ascending</span></a>
-                            <div class="commands"></div>
+                        <th class="header c5 col-creditvalue" scope="col">
+                            <?php echo(get_string('creditvalue', 'local_emp')) ?>
                         </th>
                     </tr>
                 </thead>
@@ -284,7 +288,7 @@ class export_form extends \moodleform {
 
         $data->achievements = array();
 
-        $toexport = array();
+        $toexport = $this->get_selected_achievements($data);
 
         foreach (array_keys((array)$data) as $key) {
             preg_match('/select-achievement(\d+)/', $key, $matches);
@@ -322,5 +326,38 @@ class export_form extends \moodleform {
         }
 
         return $data;
+    }
+
+    private function get_selected_achievements($data) {
+        $selected = array();
+        $data = (array)$data;
+        foreach (array_keys($data) as $key) {
+            preg_match('/select-achievement(\d+)/', $key, $matches);
+            if (empty($matches)) {
+                continue;
+            }
+
+            if ($data[$key] == 0) {
+                continue;
+            }
+            unset($data[$key]);
+            $selected[] = $matches[1];
+        }
+
+        return $selected;
+    }
+
+    // Custom form validation.
+    public function validation($data, $files) {
+        $errors = parent::validation($data, $files);
+
+        // Check if at least one achievement is selected.
+        if (empty($this->get_selected_achievements($data))) {
+            $errors['achievementserror'] = get_string('noachievementselectederror', 'local_emp');
+        }
+
+        if (!empty($errors)) {
+            return $errors;
+        }
     }
 }

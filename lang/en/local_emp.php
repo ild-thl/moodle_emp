@@ -24,6 +24,8 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+$string['bday'] = 'Your birthday';
+$string['bday_help'] = 'Your bithday is needed for authentication of your identity.';
 $string['certfile'] = 'File location of X.509 certificate';
 $string['createissuer'] = 'Create ELMO issuer';
 $string['creditscheme'] = 'Credit scheme';
@@ -60,5 +62,5 @@ $string['issuerurl'] = 'URL';
 $string['hascourseparts'] = 'Is a course programme';
 $string['hascourseparts_help'] = 'Course completion requires the completion of other courses, that are part of this course.';
 $string['courseparts'] = 'Course modules';
+$string['noachievementselectederror'] = 'Please select at least one achievement.';
 $string['nopossiblecourseparts'] = 'No possible course modules were found. Please set the ELMO course data for the course modules first.';
-

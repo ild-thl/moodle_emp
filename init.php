@@ -79,11 +79,13 @@ if ($mform->is_cancelled()) {
 } else if ($fromform = $mform->get_data()) {
     // If achievements were selected, send them to the EMREX client.
     if (empty($fromform->achievements)) {
-        $manager->ncp_no_results();
+        $manager->ncp_error('No achievements selected.');
+    } else if (empty($fromform->bday)) {
+        $manager->ncp_error('Bithday of user must be set.');
     } else {
+        $USER->bday = $fromform->bday;
         $elmo = new elmo_builder($USER, $issuer, $fromform->achievements);
         $signedelmo = $elmo->sign();
-        // $signedelmo = $elmo->get_unsigned();
 
         $reponse = $manager->ncp_ok($signedelmo);
     }

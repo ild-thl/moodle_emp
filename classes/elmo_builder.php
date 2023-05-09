@@ -18,10 +18,11 @@ namespace local_emp;
 
 defined('MOODLE_INTERNAL') || die;
 
-require($CFG->dirroot . '/vendor/autoload.php');
+require('././vendor/autoload.php');
 
 use RobRichards\XMLSecLibs\XMLSecurityDSig;
 use RobRichards\XMLSecLibs\XMLSecurityKey;
+use TCPDF;
 
 /**
  * Creates a transcript of records that attests a users achieved credits as ELMO xml.
@@ -98,7 +99,10 @@ class elmo_builder {
 
         // Build generatedDate. Example: 2015-10-31T12:00:00+02:00.
         // Backup: Fromat '%Y-%m-%0dT%T%z'.
-        $generateddate = userdate(time(), '%Y-%m-%dT%T%z');
+        $generateddate = userdate(time(), '%Y-%m-%0dT%T%z');
+        if (empty($generateddate)) {
+            $generateddate = userdate(time(), '%Y-%m-%dT%T%z');
+        }
         $generateddate = substr_replace($generateddate, ':', strlen($generateddate) - 2, 0);
         $root->appendChild($xml->createElement('generatedDate', $generateddate));
 
@@ -107,16 +111,26 @@ class elmo_builder {
         if (isset($this->user->country) && !empty($this->user->country)) {
             $learner->appendChild($xml->createElement('citizenship', $this->user->country));
         }
+
+        // Identifier.
+        $identifier = $learner->appendChild($xml->createElement('identifier', $this->user->id));
+        $identifier->setAttribute('type', 'moodle_user_identifier');
+        // Names.
         $givennames = $this->user->firstname;
         if (isset($this->user->middlename) && !empty($this->user->middlename)) {
             $givennames .= ' ' . $this->user->middlename;
         }
         $learner->appendChild($xml->createElement('givenNames', trim($givennames)));
         $learner->appendChild($xml->createElement('familyName', $this->user->lastname));
+        // Birthday. Converting timestamp to date YYYY-MM-DD: '1983-04-12'.
+        $learner->appendChild($xml->createElement('bday', date('Y-m-d', $this->user->bday)));
+        // Dummy data.
+        $learner->appendChild($xml->createElement('placeOfBirth', 'dummy placeOfBirth'));
+        $learner->appendChild($xml->createElement('birthName', 'dummy birthName'));
 
-        // // Build report.
+        // Build report.
         $report = $root->appendChild($xml->createElement('report'));
-        // // Build issuer.
+        // Build issuer.
         $issuernode = $report->appendChild($xml->createElement('issuer'));
 
         if (isset($this->issuer->country)) {
@@ -150,9 +164,8 @@ class elmo_builder {
         foreach ($this->achievements as $achievement) {
             $opportunity = $this->append_los($xml, $report, $achievement);
             if (!empty($achievement->parts)) {
-                $haspartnode = $opportunity->appendChild($xml->createElement('hasPart'));
                 foreach ($achievement->parts as $part) {
-                    $this->append_los($xml, $haspartnode, $part);
+                    $this->append_los($xml, $opportunity, $part, true);
                 }
             }
         }
@@ -160,18 +173,114 @@ class elmo_builder {
         // IssueDate.
         $report->appendChild($xml->createElement('issueDate', $generateddate));
 
+        // PDF ToR attachment.
+        $attachment = $report->appendChild($xml->createElement('attachment'));
+        $attachmenttitleen = $attachment->appendChild($xml->createElement('title', 'Transcript of Records'));
+        $attachmenttitleen->setAttributeNS(self::XML_NAMESPACE, 'lang', 'en');
+        $attachment->appendChild($xml->createElement('type', 'Transcript of Records'));
+        $attachment->appendChild($xml->createElement('content', $this->get_pdf_tor()));
+
         return $xml;
     }
 
-    protected function append_los($xml, $parent, $achievement) {
+    protected function get_pdf_tor() {
+
+        $pdf = new TCPDF('L', 'mm', 'A4', true, 'UTF-8', false);
+
+        $html = '<!DOCTYPE html>
+        <html>
+          <head>
+            <title>Course List</title>
+            <style>
+              table,
+              th,
+              td {
+                border: 1px solid black;
+                border-collapse: collapse;
+                padding: 5px;
+                text-align: left;
+              }
+            </style>
+          </head>
+          <body>
+            <h1>Transcript of Records</h1>
+            </br>
+            <table>
+              <thead>
+                <tr>
+                  <th>Course ID</th>
+                  <th>Course Name</th>
+                  <th>Credit Scheme</th>
+                  <th>Credit Value</th>
+                  <th>Level Value</th>
+                  <th>Level Type</th>
+                  <th>Language of Instruction</th>
+                  <th>Engagement Hours</th>
+                  <th>Summary</th>
+                  <th>Parent</th>
+                </tr>
+              </thead>
+              <tbody>
+        ';
+
+        foreach ($this->achievements as $course) {
+            $html .= $this->get_achievement_html($course);
+            if (!empty($course->parts)) {
+                foreach ($course->parts as $part) {
+                    $html .= $this->get_achievement_html($part, $course->courseid);
+                }
+            }
+        }
+
+        $html .= '</tbody>
+            </table>
+          </body>
+        </html>';
+
+        $pdf->AddPage();
+        $pdf->writeHTML($html);
+
+        return 'data:application/pdf;base64,' . base64_encode($pdf->Output('tor.pdf', 'S'));
+    }
+
+    private function get_achievement_html($achievement, $parentid=null) {
+        $html = "<tr>";
+        $html .= "<td>{$achievement->courseid}</td>";
+        $html .= "<td>{$achievement->coursename}</td>";
+        $html .= "<td>{$achievement->creditscheme}</td>";
+        $html .= "<td>{$achievement->creditvalue}</td>";
+        $html .= "<td>{$achievement->levelvalue}</td>";
+        $html .= "<td>{$achievement->leveltype}</td>";
+        $html .= "<td>{$achievement->languageofinstruction}</td>";
+        $html .= "<td>{$achievement->engagementhours}</td>";
+        $html .= "<td>{$achievement->summary}</td>";
+        $html .= "<td>";
+        if (isset($parentid)) {
+            $html .= $parentid;
+        } else {
+            $html .= "N/A";
+        }
+        $html .= "</td>";
+        $html .= "</tr>";
+        return $html;
+    }
+
+    protected function append_los($xml, $parent, $achievement, $ispart = false) {
+        if ($ispart) {
+            $parent = $parent->appendChild($xml->createElement('hasPart'));
+        }
         $opportunity = $parent->appendChild($xml->createElement('learningOpportunitySpecification'));
         $localid = $opportunity->appendChild($xml->createElement('identifier', $achievement->courseid));
         $localid->setAttribute('type', 'local');
         $opportunity->appendChild($xml->createElement('title', $achievement->coursename));
-        $opportunity->appendChild($xml->createElement('type', 'Course'));
+        if ($ispart) {
+            $opportunity->appendChild($xml->createElement('type', 'Course'));
+        } else {
+            $opportunity->appendChild($xml->createElement('type', 'Module'));
+        }
         // TODO: subjectArea and iscedCode.
         // TODO: url to detailpage if isymeta plugin is installed.
-        $opportunity->appendChild($xml->createElement('description', manager::xml_escape(strip_tags($achievement->summary))));
+        $opportunity->appendChild($xml->createElement('description', manager::xml_escape(preg_replace('/[\n\r]/', '', strip_tags($achievement->summary)))));
 
         $specifies = $opportunity->appendChild($xml->createElement('specifies'));
         $opportunityinstance = $specifies->appendChild($xml->createElement('learningOpportunityInstance'));
@@ -206,7 +315,8 @@ class elmo_builder {
         $signer->addReference(
             $this->xml,
             XMLSecurityDSig::SHA256,
-            array('http://www.w3.org/2000/09/xmldsig#enveloped-signature')
+            array('http://www.w3.org/2000/09/xmldsig#enveloped-signature'),
+            array('force_uri' => true)
         );
 
         // Create a new (private) Security key.
