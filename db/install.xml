@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="local/emp/db" VERSION="20230223" COMMENT="XMLDB file for Moodle local/emp"
+<XMLDB PATH="local/emp/db" VERSION="20240128" COMMENT="XMLDB file for Moodle local/emp"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
@@ -45,6 +45,24 @@
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
         <KEY NAME="foreign_parent_emp" TYPE="foreign" FIELDS="parent" REFTABLE="local_emp_course" REFFIELDS="id"/>
         <KEY NAME="foreign_haspart_emp" TYPE="foreign" FIELDS="haspart" REFTABLE="local_emp_course" REFFIELDS="id"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="recognition_history" COMMENT="History of past decided recognition requests on PIM related to courses of this moodle.">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="pimhistorysetid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="External reference to the id of the entry in PIMs recognition history."/>
+        <FIELD NAME="learningopportunity" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Name of the learning opportunity the recognition targeted."/>
+        <FIELD NAME="studyprogramme" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="hei" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="NAme of the hei that recognized the achievement."/>
+        <FIELD NAME="status" TYPE="binary" NOTNULL="true" SEQUENCE="false" COMMENT="1 for successful recognition request, 0 for rejected recognition"/>
+        <FIELD NAME="credits" TYPE="int" LENGTH="3" NOTNULL="true" SEQUENCE="false" COMMENT="The amount of credits recognized."/>
+        <FIELD NAME="year" TYPE="int" LENGTH="4" NOTNULL="true" SEQUENCE="false" COMMENT="The year the achievement was recognized."/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="recognition_history_courseid" TYPE="foreign" FIELDS="courseid" REFTABLE="courses" REFFIELDS="id"/>
+        <KEY NAME="unique_pimhistorysetid" TYPE="unique" FIELDS="pimhistorysetid"/>
       </KEYS>
     </TABLE>
   </TABLES>

@@ -14,17 +14,22 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-
 /**
- * Version details.
+ * Task schedule configuration for the local_emp plugin.
  *
- * @package    local_emp
- * @copyright  2022 Pascal Hürten <pascal.huerten@th-luebeck.de>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   local_emp
+ * @copyright 2024, Pascal Hürten <pascal.huerten@gmail.com>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
-
-$plugin->version   = 2024012815;        // The current plugin version (Date: YYYYMMDDXX).
-$plugin->requires  = 2021051711;        // Requires this Moodle version.
-$plugin->component = 'local_emp';       // Full name of the plugin (used for diagnostics).
+$tasks = [
+    [
+        'classname' => 'local_emp\task\fetch_recognition_history',
+        'blocking' => 0,
+        'minute' => '0',
+        'hour' => '2',
+        'day' => '*',
+        'month' => '*',
+        'dayofweek' => '*',
+    ],
+];

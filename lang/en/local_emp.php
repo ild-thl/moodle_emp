@@ -39,6 +39,7 @@ $string['engagementhours'] = 'Engagement hours';
 $string['exportformtitle'] = 'Export credits';
 $string['exportformsubtitle'] = 'Choose the credits, that you want to export.';
 $string['exportformsubmit'] = 'Export credits';
+$string['fetchrecognitionrequests'] = 'Fetch recognition history';
 $string['issuer'] = 'Issuer';
 $string['keyfile'] = 'File location of public key';
 $string['keyfiledesc'] = 'Issuer';

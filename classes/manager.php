@@ -155,4 +155,15 @@ class manager {
 
         \core\notification::error(get_string('ncperror', 'local_emp', $error));
     }
+
+    /**
+     * Returns the course identifier by concatenating the Moodle course ID and the issuer's SCHAC.
+     *
+     * @param int $moodlecourseid The Moodle course ID.
+     * @param string $issuerschac The issuer's SCHAC.
+     * @return string The course identifier.
+     */
+    public static function generate_learningopportunity_indentifier(int $moodlecourseid, string $issuerschac): string {
+        return $issuerschac . ":" . $moodlecourseid;
+    }
 }

@@ -243,7 +243,7 @@ class elmo_builder {
         return 'data:application/pdf;base64,' . base64_encode($pdf->Output('tor.pdf', 'S'));
     }
 
-    private function get_achievement_html($achievement, $parentid=null) {
+    private function get_achievement_html($achievement, $parentid = null) {
         $html = "<tr>";
         $html .= "<td>{$achievement->courseid}</td>";
         $html .= "<td>{$achievement->coursename}</td>";
@@ -270,7 +270,9 @@ class elmo_builder {
             $parent = $parent->appendChild($xml->createElement('hasPart'));
         }
         $opportunity = $parent->appendChild($xml->createElement('learningOpportunitySpecification'));
-        $localid = $opportunity->appendChild($xml->createElement('identifier', $achievement->courseid));
+        $localid = $opportunity->appendChild(
+            $xml->createElement('identifier', manager::generate_learningopportunity_indentifier($achievement->courseid, $this->issuer->schac))
+        );
         $localid->setAttribute('type', 'local');
         $opportunity->appendChild($xml->createElement('title', $achievement->coursename));
         if ($ispart) {

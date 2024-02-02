@@ -39,6 +39,7 @@ $string['engagementhours'] = 'Arbeitsaufwand';
 $string['exportformtitle'] = 'Credits exportieren';
 $string['exportformsubtitle'] = 'Wählen Sie die Credits aus, die Sie exportieren möchten.';
 $string['exportformsubmit'] = 'Credits exportieren';
+$string['fetchrecognitionrequests'] = 'Anerkennungshistorie abrufen';
 $string['issuer'] = 'Aussteller';
 $string['keyfile'] = 'Dateispeicherort des öffentlichen Schlüssels';
 $string['keyfiledesc'] = 'Aussteller';
