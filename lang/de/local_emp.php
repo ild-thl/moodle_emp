@@ -52,6 +52,7 @@ $string['ncperror'] = 'Beim Vorbereiten des Creditsxports ist ein Fehler aufgetr
 $string['ncpnoresults'] = 'Export von Credits abgebrochen. Es gibt nichts zu exportieren.';
 $string['ncpok'] = 'Credits werden übertragen. Sie werden in Kürze weitergeleitet.';
 $string['pempassphrase'] = 'PEM-Passwort';
+$string['pimapitoken'] = 'PIM-API-Token';
 $string['pluginname'] = 'EMREX-Kontaktstelle';
 $string['privacy:metadata'] = 'Das EMREX-Kontaktstelle-Plugin speichert keine persönlichen Daten.';
 $string['issuererasmus'] = 'ERASMUS-Identifikator';

@@ -52,6 +52,7 @@ $string['ncperror'] = 'An error occured while preparing the credit export.  Erro
 $string['ncpnoresults'] = 'Canceled credits export. Nothing to export.';
 $string['ncpok'] = 'Credits are baeing transferred. You will be redirected shortly.';
 $string['pempassphrase'] = 'PEM pass phrase';
+$string['pimapitoken'] = 'PIM-API-Token';
 $string['pluginname'] = 'EMREX Contact Point';
 $string['privacy:metadata'] = 'The EMREX Contact Point plugin does not store any personal data.';
 $string['issuererasmus'] = 'ERASMUS identifier';

@@ -376,7 +376,10 @@ class PIM_API {
         $query = http_build_query($params);
         $curl = curl_init($host . $endpoint . '?' . $query);
 
-        $token = 'RjVPMVpJQVpaQkY0QlQyRk5XRFFRUlY=';
+        $token = get_config('localemp', 'pimapitoken');
+        if (empty($token)) {
+            throw new \moodle_exception('PIM API token is not set.');
+        }
         $headers = array(
             'Authorization: Bearer ' . $token,
         );

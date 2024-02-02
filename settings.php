@@ -56,6 +56,12 @@ if ($hassiteconfig) {
             '',
             ''
         ));
+        $settingspage->add(new admin_setting_configtext(
+            'localemp/pimapitoken',
+            get_string('pimapitoken', 'local_emp'),
+            '',
+            ''
+        ));
 
         $ADMIN->add('localempfolder', $settingspage);
     }
