@@ -24,6 +24,8 @@
 
 namespace local_emp\task;
 
+defined('MOODLE_INTERNAL') || die();
+
 use local_emp\manager;
 use moodle_exception;
 
@@ -101,7 +103,8 @@ class fetch_recognition_history extends \core\task\scheduled_task {
         $data->credits = $historyset['internalHistoryAchievement']['credits'];
         $data->year = $historyset['externalHistoryAchievement']['yearOfCompletion'];
 
-        mtrace("Saving recognition history for course " . $data->courseid . " (" . ($data->status ? 'approved' : 'rejected') . ").");
+        mtrace("Saving recognition history for course " . $data->courseid .
+            " (" . ($data->status ? 'approved' : 'rejected') . ").");
         $DB->insert_record('local_emp_recognitions', $data);
     }
 }
@@ -116,7 +119,11 @@ class PIM_API {
      * @param int|null $learningopportunityid The ID of the learning opportunity.
      * @return array An array of history achievements.
      */
-    public static function get_history_achievements(string $id = null, string $source = null, int $learningopportunityid = null): array {
+    public static function get_history_achievements(
+        string $id = null,
+        string $source = null,
+        int $learningopportunityid = null
+    ): array {
         $historyachievements = self::get_data_with_caching('/historyachievement', $id);
         // Filter by source if it's set.
         if (!empty($source)) {
@@ -186,9 +193,7 @@ class PIM_API {
                 $match = true;
             } else if ($lo['name'] == $name) {
                 $hei = self::get_heis($lo['heiId']);
-                if (count($hei) == 1) {
-                    $hei = array_pop($hei);
-                } else {
+                if (empty($hei)) {
                     mtrace("No hei found for learning opportunity " . $lo['name'] . " (" . $lo['id'] . ").");
                     continue;
                 }
@@ -206,14 +211,12 @@ class PIM_API {
             }
             mtrace("Found learning opportunity " . $lo['name'] . " (" . $lo['id'] . ").");
 
-            // $externalachievements = self::get_history_achievements(null, 'EXTERNAL', $lo['id']);
+            // Get external achievements from pim api by learningOpportunity id.
             $externalachievements = self::get_history_achievements(null, 'EXTERNAL', $lo['id']);
             foreach ($externalachievements as $achievement) {
                 // Get historysets from pim api by historySet id.
                 $historyset = self::get_historysets($achievement['historySet']['id']);
-                if (count($historyset) == 1) {
-                    $historyset = array_pop($historyset);
-                } else {
+                if (empty($historyset)) {
                     mtrace("No historyset found for achievement " . $achievement['id'] . ".");
                     continue;
                 }
@@ -221,26 +224,23 @@ class PIM_API {
                 $historyset['externalHistoryAchievement'] = $achievement;
 
                 // Check if historyset has internalHistoryAchievement.
-                if (!array_key_exists('internalHistoryAchievement', $historyset) or empty($historyset['internalHistoryAchievement'])) {
+                if (
+                    !array_key_exists('internalHistoryAchievement', $historyset)
+                    or empty($historyset['internalHistoryAchievement'])
+                ) {
                     mtrace("No internalHistoryAchievement found for achievement " . $achievement['id'] . ".");
                     continue;
                 }
                 // Get data for internalHistoryAchievement from api.
                 $internalhistoryachievement = self::get_history_achievements($historyset['internalHistoryAchievement'][0]['id']);
-
                 // Get hei of internalHistoryAchievement.
                 $lo = self::get_learningopportunities($internalhistoryachievement['learningOpportunity']['id']);
-
-                if (count($lo) == 1) {
-                    $lo = array_pop($lo);
-                } else {
+                if (empty($lo)) {
                     mtrace("No learning opportunity found for achievement " . $achievement['id'] . ".");
                     continue;
                 }
                 $hei = self::get_heis($lo['heiId']);
-                if (count($hei) == 1) {
-                    $hei = array_pop($hei);
-                } else {
+                if (empty($hei)) {
                     mtrace("No hei found for achievement " . $achievement['id'] . ".");
                     continue;
                 }
@@ -278,7 +278,12 @@ class PIM_API {
         // If an ID is provided, fetch the specific item.
         if (!empty($id)) {
             $item = self::get_pim_api_data("$endpoint/$id");
-            $cache[$endpoint][$id] = $item;  // Store the fetched item in the cache.
+            // If the item is an array with numeric keys, return the first item.
+            if (is_array($item) && array_keys($item) === range(0, count($item) - 1)) {
+                $item = $item[0];
+            }
+            // Store the fetched item in the cache.
+            $cache[$endpoint][$id] = $item;
             return $item;
         }
 
@@ -310,10 +315,14 @@ class PIM_API {
         // Fetch the first page to get the total number of pages.
         $response = self::get_pim_api_page($endpoint, 1, $params);
         $data = array_merge($data, $response['data']);
-        $totalpages = isset($response['totalPages']) ? $response['totalPages'] : 0;
+        $totalpages = isset($response['totalPages']) ? $response['totalPages'] : 1;
 
-        // Calculate the start page. If there are less than 5 pages, start from page 1.
-        $startpage = max(1, $totalpages - 4);
+        if ($totalpages == 1) {
+            return $data;
+        }
+
+        // Calculate the start page.
+        $startpage = 2;
 
         // Initialize cURL handles for each page.
         for ($page = $startpage; $page <= $totalpages; $page++) {
@@ -400,7 +409,7 @@ class PIM_API {
 
             // Response must have keys 'data' and 'totalPages'.
             if (!array_key_exists('data', $decodedresponse)) {
-                throw new \moodle_exception('Response does not contain required key "data". Request: ' . $host . $endpoint . '?' . $query);
+                throw new \moodle_exception('Response does not contain required key "data". ' . $endpoint . '?' . $query);
             }
 
             return $decodedresponse;

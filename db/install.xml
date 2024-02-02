@@ -47,7 +47,7 @@
         <KEY NAME="foreign_haspart_emp" TYPE="foreign" FIELDS="haspart" REFTABLE="local_emp_course" REFFIELDS="id"/>
       </KEYS>
     </TABLE>
-    <TABLE NAME="recognition_history" COMMENT="History of past decided recognition requests on PIM related to courses of this moodle.">
+    <TABLE NAME="local_emp_recognitions" COMMENT="History of past decided recognition requests on PIM related to courses of this moodle.">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
