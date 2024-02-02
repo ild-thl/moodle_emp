@@ -32,9 +32,9 @@ function xmldb_local_emp_upgrade($oldversion) {
     global $DB;
     $dbman = $DB->get_manager();
 
-    if ($oldversion < 2024012815) {
+    if ($oldversion < 2024012816) {
         // Define table recognition_history to be created.
-        $table = new xmldb_table('recognition_history');
+        $table = new xmldb_table('local_emp_recognitions');
 
         // Adding fields to table recognition_history.
         $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
@@ -58,7 +58,7 @@ function xmldb_local_emp_upgrade($oldversion) {
         }
 
         // Savepoint reached.
-        upgrade_plugin_savepoint(true, 2024012815, 'local', 'emp');
+        upgrade_plugin_savepoint(true, 2024012816, 'local', 'emp');
     }
 
     return true;
