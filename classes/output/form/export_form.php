@@ -53,11 +53,6 @@ class export_form extends \moodleform {
         $mform->addElement('html', $achievementstable);
         $mform->addElement('static', 'achievementserror');
 
-        $mform->addElement('date_selector', 'bday', get_string('bday', 'local_emp'));
-        // Make bday required.
-        $mform->addRule('bday', get_string('required'), 'required');
-        $mform->addHelpButton('bday', 'bday', 'local_emp');
-
         $this->add_action_buttons(true, get_string('exportformsubmit', 'local_emp'));
     }
 

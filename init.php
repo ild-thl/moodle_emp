@@ -80,10 +80,7 @@ if ($mform->is_cancelled()) {
     // If achievements were selected, send them to the EMREX client.
     if (empty($fromform->achievements)) {
         $manager->ncp_error('No achievements selected.');
-    } else if (empty($fromform->bday)) {
-        $manager->ncp_error('Bithday of user must be set.');
     } else {
-        $USER->bday = $fromform->bday;
         $elmo = new elmo_builder($USER, $issuer, $fromform->achievements);
         $signedelmo = $elmo->sign();
 
@@ -93,12 +90,31 @@ if ($mform->is_cancelled()) {
     // Render page and export form.
     echo $OUTPUT->header();
 
-    $toform = array(
-        'sessionId' => $sessionid,
-        'returnUrl' => $returnurl,
-    );
-    $mform->set_data($toform);
-    $mform->display();
+    // Check if required fields are set in user profile.
+    $profileurl = new moodle_url('/user/editadvanced.php', ['id' => $USER->id, 'course' => 1]);
+    $requiredfieldsset = true;
+    if (empty($USER->profile['local_emp_placeOfBirth'])) {
+        \core\notification::error(get_string('placeofbirthnotset', 'local_emp', $profileurl->out(true)));
+        $requiredfieldsset = false;
+    }
+    if (empty($USER->profile['local_emp_birthName'])) {
+        \core\notification::error(get_string('birthnamenotset', 'local_emp', $profileurl->out(true)));
+        $requiredfieldsset = false;
+    }
+    if (empty($USER->profile['local_emp_bday'])) {
+        \core\notification::error(get_string('birthdaynotset', 'local_emp', $profileurl->out(true)));
+        $requiredfieldsset = false;
+    }
+
+    // Display form if required fields are set.
+    if ($requiredfieldsset) {
+        $toform = array(
+            'sessionId' => $sessionid,
+            'returnUrl' => $returnurl,
+        );
+        $mform->set_data($toform);
+        $mform->display();
+    }
 
     echo $OUTPUT->footer();
 }

@@ -123,10 +123,10 @@ class elmo_builder {
         $learner->appendChild($xml->createElement('givenNames', trim($givennames)));
         $learner->appendChild($xml->createElement('familyName', $this->user->lastname));
         // Birthday. Converting timestamp to date YYYY-MM-DD: '1983-04-12'.
-        $learner->appendChild($xml->createElement('bday', date('Y-m-d', $this->user->bday)));
+        $learner->appendChild($xml->createElement('bday', date('Y-m-d', $this->user->profile['local_emp_bday'])));
         // Dummy data.
-        $learner->appendChild($xml->createElement('placeOfBirth', 'dummy placeOfBirth'));
-        $learner->appendChild($xml->createElement('birthName', 'dummy birthName'));
+        $learner->appendChild($xml->createElement('placeOfBirth', $this->user->profile['local_emp_placeOfBirth']));
+        $learner->appendChild($xml->createElement('birthName', $this->user->profile['local_emp_birthName']));
 
         // Build report.
         $report = $root->appendChild($xml->createElement('report'));

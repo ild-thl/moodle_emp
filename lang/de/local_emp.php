@@ -26,6 +26,8 @@
 
 $string['bday'] = 'Ihr Geburtstag';
 $string['bday_help'] = 'Ihr Geburtstag wird für die Authentifizierung Ihrer Identität benötigt.';
+$string['birthdaynotset'] = 'Bitte geben Sie Ihren Geburttag in Ihrem Profil an. Gehen Sie zu Ihren <a href="{$a}">Profil-Einstellungen</a>.';
+$string['birthnamenotset'] = 'Bitte geben Sie Ihren Geburtsnamen in Ihrem Profil an. Gehen Sie zu Ihren <a href="{$a}">Profil-Einstellungen</a>.';
 $string['certfile'] = 'Dateispeicherort des X.509-Zertifikats';
 $string['createissuer'] = 'Erstelle ELMO-Aussteller';
 $string['creditscheme'] = 'Kredit-Schema';
@@ -54,6 +56,7 @@ $string['ncpok'] = 'Credits werden übertragen. Sie werden in Kürze weitergelei
 $string['pempassphrase'] = 'PEM-Passwort';
 $string['pimapitoken'] = 'PIM-API-Token';
 $string['pluginname'] = 'EMREX-Kontaktstelle';
+$string['placeofbirthnotset'] = 'Bitte geben Sie Ihren Geburtsort in Ihrem Profil an. Gehen Sie zu Ihren <a href="{$a}">Profil-Einstellungen</a>.';
 $string['privacy:metadata'] = 'Das EMREX-Kontaktstelle-Plugin speichert keine persönlichen Daten.';
 $string['issuererasmus'] = 'ERASMUS-Identifikator';
 $string['issuerpic'] = 'PIC-Identifikator';
