@@ -61,5 +61,18 @@ function xmldb_local_emp_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2024012816, 'local', 'emp');
     }
 
+    if ($oldversion < 2024020813) {
+
+        // Define key unique_pimhistorysetid (unique) to be dropped form local_emp_recognitions.
+        $table = new xmldb_table('local_emp_recognitions');
+        $key = new xmldb_key('unique_pimhistorysetid', XMLDB_KEY_UNIQUE, ['pimhistorysetid']);
+
+        // Launch drop key recognition_history_courseid.
+        $dbman->drop_key($table, $key);
+
+        // Emp savepoint reached.
+        upgrade_plugin_savepoint(true, 2024020813, 'local', 'emp');
+    }
+
     return true;
 }
